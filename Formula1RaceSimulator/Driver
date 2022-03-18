@@ -1,0 +1,40 @@
+package coursework;
+
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+/**
+ *
+ * @author lucas
+ */
+
+
+abstract class Driver {
+    
+    //setters
+    
+    public abstract void setDriverName(String newName);
+    public abstract void setDriverTeam(String newName);
+    public abstract void setDriverLocation(String newName);
+    public abstract void setDriverFirstPos(int newNumber);
+    public abstract void setDriverSecondPos(int newNumber);
+    public abstract void setDriverThirdPos(int newNumber);
+    public abstract void setDriverPoints(int posAdd);
+    public abstract void setDriverRaces(int newNumber);
+    
+    //getters
+    
+    public abstract String getDriverName();
+    public abstract String getDriverTeam();
+    public abstract String getDriverLocation();
+    public abstract int getDriverFirstPos();
+    public abstract int getDriverSecondPos();
+    public abstract int getDriverThirdPos();
+    public abstract int getDriverPoints();
+    public abstract int getDriverRaces();
+}
+
+
