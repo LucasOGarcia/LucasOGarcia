@@ -1,0 +1,150 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package coursework;
+
+import java.awt.event.*;
+import javax.swing.*;
+
+/**
+ *
+ * @author lucas
+ */
+public class Main {
+    
+    //Constructor
+    
+    static F1ChampionshipManager f1Championship = new F1ChampionshipManager();
+    static JTextField inputField = new JTextField();
+    static JTextArea windowBox = new JTextArea();
+    static JTextArea tableBox = new JTextArea();
+
+    /**
+     * @param args the command line arguments
+     */
+    public static void main(String[] args) {
+        createGUI();
+        f1Championship.load();
+        f1Championship.f1ChampionshipConsoleMenu(); 
+        }
+    
+    public static void createGUI(){
+        
+        // Main window
+        String defaultTableSortingType = "Descending";
+        String ascendingTableSortingType = "Ascending";
+        String racePosTableSortingType = "RacePos";
+        
+        
+        JFrame window = new JFrame("Formula1Championship");
+        f1Championship.setJFrame(window);
+        window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        window.setSize(1375, 600);
+        window.setLayout(null);
+        
+        // Table window
+        
+        JTextArea windowTable = new JTextArea();
+        windowTable.setBounds(675, 50, 650, 450);
+        // tableBox = windowTable;
+        f1Championship.setTableTextArea(windowTable);
+        window.add(windowTable);
+        
+        // Text box
+        JTextArea textArea = new JTextArea();
+        textArea.setBounds(50, 50, 600, 225);
+        // windowBox = textArea;
+        f1Championship.setWindowTextArea(textArea);
+        window.add(textArea);
+        
+        // Add a race
+            
+        JButton b1 = new JButton("Add Race");
+        b1.setBounds(250, 300, 200, 50);
+        b1.addActionListener(new ActionListener(){
+            @Override
+            public void actionPerformed(ActionEvent e){
+                f1Championship.addRacePart3();
+            }
+        });
+        window.add(b1);
+        
+        // Display a f1 driver table descending order
+            
+        JButton b2 = new JButton("Table by points(Descending)");
+        b2.setBounds(250, 350, 200, 50);
+        b2.addActionListener(new ActionListener(){
+            @Override
+            public void actionPerformed(ActionEvent e){
+                f1Championship.f1TableByPoints(defaultTableSortingType);
+            }
+        });
+        window.add(b2);
+
+        // Display a f1 driver table ascending order
+            
+        JButton b3 = new JButton("Table by points(Ascending)");
+        b3.setBounds(250, 400, 200, 50);
+        b3.addActionListener(new ActionListener(){
+            @Override
+            public void actionPerformed(ActionEvent e){
+                f1Championship.f1TableByPoints(ascendingTableSortingType);
+            }
+        });
+        window.add(b3);
+        
+        // Display a f1 driver table number first of race positions
+            
+        JButton b4 = new JButton("Table by first race positions");
+        b4.setBounds(250, 450, 200, 50);
+        b4.addActionListener(new ActionListener(){
+            @Override
+            public void actionPerformed(ActionEvent e){
+                f1Championship.f1TableByPoints(racePosTableSortingType);
+            }
+        });
+        window.add(b4);
+        
+        // Add a race with probability
+            
+        JButton b5 = new JButton("Add race with probability");
+        b5.setBounds(450, 300, 200, 50);
+        b5.addActionListener(new ActionListener(){
+            @Override
+            public void actionPerformed(ActionEvent e){
+                f1Championship.addRaceWithProbability();
+            }
+        });
+        window.add(b5);
+        
+        //Shows races by date in ascending order
+        
+        JButton b6 = new JButton("Show all races(Ascending)");
+        b6.setBounds(450, 350, 200, 50);
+        b6.addActionListener(new ActionListener(){
+            @Override
+            public void actionPerformed(ActionEvent e){
+                f1Championship.seeAllRaces();
+            }
+        });
+        window.add(b6);
+        
+        // Shows races which a driver particapated
+        
+        JButton b7 = new JButton("Show driver's races");
+        b7.setBounds(450, 400, 200, 50);
+        b7.addActionListener(new ActionListener(){
+            @Override
+            public void actionPerformed(ActionEvent e){
+                f1Championship.showDriverRaces();
+            }
+        });
+        window.add(b7);
+       
+        window.setVisible(true);
+    }
+}
+
+
