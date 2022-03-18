@@ -1,0 +1,162 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package coursework;
+import java.io.Serializable;
+
+/**
+ *
+ * @author lucas
+ */
+public class Formula1Driver extends Driver implements Serializable{
+    private String driverName;
+    private String driverTeam;
+    private String driverLocation;
+    private int tempPosition;
+    private int tempStartPosition;
+    private int firstPositionRecord;
+    private int secondPositionRecord;
+    private int thirdPositionRecord;
+    private int numberOfPoints;
+    private int numberOfRaces;
+    
+    //Constructors
+    
+    public Formula1Driver(String newName, String newTeam, String newLocation){
+        this.driverName = newName;
+        this.driverTeam = newTeam;
+        this.driverLocation = newLocation;
+        this.tempPosition = 0;
+        this.tempStartPosition = 0;
+        this.firstPositionRecord = 0;
+        this.secondPositionRecord = 0;
+        this.thirdPositionRecord = 0;
+        this.numberOfPoints = 0;
+        this.numberOfRaces = 0;   
+    }
+    
+    //setters
+    
+    @Override
+    public void setDriverName(String newName){
+        this.driverName = newName;
+    }
+    
+    @Override
+    public void setDriverTeam(String newDriverTeam){
+        this.driverTeam = newDriverTeam;
+    }
+    
+    @Override
+    public void setDriverLocation(String newLocation){
+        this.driverLocation = newLocation;
+    }
+    
+    @Override
+    public void setDriverFirstPos(int newNumber){
+        this.firstPositionRecord = newNumber;
+    }
+    
+    @Override
+    public void setDriverSecondPos(int newNumber){
+        this.secondPositionRecord = newNumber;
+    }
+    
+    @Override
+    public void setDriverThirdPos(int newNumber){
+        this.thirdPositionRecord = newNumber;
+    }
+    
+    @Override
+    public void setDriverPoints(int newNumber){
+        this.numberOfPoints = newNumber;
+    }
+    
+    @Override
+    public void setDriverRaces(int newNumber){
+        this.numberOfRaces = newNumber;
+    }
+    
+    public void setDriverTempPosition(int position){
+        this.tempPosition = position;
+    }
+    
+    public void setDriverTempStartPosition(int position){
+        this.tempStartPosition = position;
+    }
+    
+    //getters
+    
+    
+    @Override
+    public String getDriverName(){
+        return this.driverName;
+    }
+    
+    @Override
+    public String getDriverTeam(){
+        return this.driverTeam;
+    }
+    
+    @Override
+    public String getDriverLocation(){
+        return this.driverLocation;
+    }
+    
+    @Override
+    public int getDriverFirstPos(){
+        return this.firstPositionRecord;
+    }
+    
+    @Override
+    public int getDriverSecondPos(){
+        return this.secondPositionRecord;
+    }
+    
+    @Override
+    public int getDriverThirdPos(){
+        return this.thirdPositionRecord;
+    }
+    
+    @Override
+    public int getDriverPoints(){
+        return this.numberOfPoints;
+    }
+    
+    @Override
+    public  int getDriverRaces(){
+        return this.numberOfRaces;
+    }
+    
+    public int getDriverTempPosition(){
+        return this.tempPosition;
+    }
+    
+    public int getDriverTempStartPosition(){
+        return tempStartPosition;
+    }
+    
+    //other
+    
+    public void addDriverFirstPos(){
+        this.firstPositionRecord += 1;
+    }
+    
+    public void addDriverSecondPos(){
+        this.secondPositionRecord += 1;
+    }
+    
+    public void addDriverThirdPos(){
+        this.thirdPositionRecord += 1;
+    }
+    
+    public void addDriverPoints(int addPoint){
+        this.numberOfPoints += addPoint;
+    }
+    
+    public void addDriverRaces(){
+        this.numberOfRaces += 1;
+    }
+}
