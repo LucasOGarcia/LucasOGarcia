@@ -1,0 +1,218 @@
+extends Node2D
+
+var dungeonName:String = "PurpleDungeon" #= PlayerLocations.dungeon
+var dungeonLevel: int = 2 #PlayerLocations.dungeonLevel 
+var listOfRooms # Pool of all possible rooms for this floor
+
+var chunks: Array = [] # Room templates
+var extend: Array = [] # Rooms which will connect to new rooms
+var rooms: Array = [] # All rooms successfully created
+var startingRoom
+var endingRoom
+var floorRoomCount
+
+func _ready():
+	randomize()
+	chunks = $TemplateRooms.get_children()
+	getFloorInfo()
+	createStartingRoom()
+
+# get parameters and generate random values to create the current floor
+func getFloorInfo():
+	var currentLevel = "Level"+ str(dungeonLevel)
+	if JsonData.dungeonData[dungeonName].has(currentLevel):
+		listOfRooms  = JsonData.dungeonData[dungeonName][currentLevel]["Rooms"]
+		var minRoomNum = int(JsonData.dungeonData[dungeonName][currentLevel]["minRoomNum"])
+		var maxRoomNum = int(JsonData.dungeonData[dungeonName][currentLevel]["maxRoomNum"])
+		floorRoomCount = randi() % (maxRoomNum - minRoomNum) + minRoomNum
+
+# create the starting room of a floor
+func createStartingRoom():
+	startingRoom = chunks[randi() % chunks.size()]
+	var startingRoomPos = startingRoom.get_global_position()
+	startingRoom.queue_free()
+	var STARTING_ROOM_SCENE = load("res://World/Dungeons/"+dungeonName+"/Rooms/StartingRoom.tscn")
+	var startingRoomInstance = STARTING_ROOM_SCENE.instance()
+	startingRoomInstance.set_global_position(startingRoomPos)
+	$Rooms.add_child(startingRoomInstance)
+	extend.append(startingRoomInstance)
+	startingRoom = startingRoomInstance
+#	print(floorRoomCount)
+	yield(get_tree().create_timer(0.1), 'timeout')
+	populateRooms()
+
+# create all rooms in a floor
+func populateRooms():
+# warning-ignore:unassigned_variable
+	var adjacentRooms: Array
+# warning-ignore:unassigned_variable
+	var adjacentDirections: Array
+	while floorRoomCount >0:
+		var adjcentCheck = extend[0].getAdjacentShape()
+		if floorRoomCount == 1: # Add ending room
+			break
+		else:
+		#get a list of adjcent rooms and their direction
+			adjacentRoomDirection(adjcentCheck, adjacentRooms, adjacentDirections)
+			# Check if adjacent rooms are already populated if yes remove them from arraylists
+			for i in adjacentRooms.size():
+				if adjacentRooms[i].populated != false:
+					adjacentRooms.remove(i)
+					adjacentDirections.remove(i)
+			# If there are no directions to add rooms, add all rooms from rooms array list  to extend array list
+			if adjacentRooms != []:
+				var absoluteChance
+				if extend.size() == 1:
+					absoluteChance = 0
+				var roomsTBM:int = floorRoomCount/2
+				for u in roomsTBM:
+#					yield(get_tree().create_timer(0.2), 'timeout') ##remove later
+					if absoluteChance == 0: # Gaurantee one room is added
+						createRoom(adjacentRooms, adjacentDirections)
+						absoluteChance +=1
+					else:
+						# Room has 20% chance to be added
+						var chanceToSpawnRoom = randi() % 100 + 1
+						if chanceToSpawnRoom <=20:
+							createRoom(adjacentRooms, adjacentDirections)
+						elif chanceToSpawnRoom <=3:
+							pass #to-do add a pool of rare rooms
+		# Remove from "extend" array the room which we just extended from
+		extend.remove(0)
+		adjacentRooms = []
+		adjacentDirections = []
+		if extend == []:
+			extend = rooms.duplicate(true)
+			#shuffle the array for more RNG on the dungeon
+			extend.shuffle()
+#		print("floorRoomCount ",floorRoomCount)
+		yield(get_tree().create_timer(0.1), 'timeout')
+	createEndingRoom()
+	deleteEmptyChunks()
+	deleteCollisionShapes()
+	updateDungeonTileMap()
+
+# create the ending room of a floor
+func createEndingRoom():
+	endingRoom = true # Ensures the createRoom function will instance the end room
+# warning-ignore:unassigned_variable
+	var adjacentRooms: Array
+# warning-ignore:unassigned_variable
+	var adjacentDirections: Array
+	extend.clear()
+	rooms.insert(0,startingRoom)
+	rooms.invert()
+	extend = rooms.duplicate(true)
+	while endingRoom == true:
+		var adjcentCheck = extend[0].getAdjacentShape()
+		adjacentRoomDirection(adjcentCheck, adjacentRooms, adjacentDirections)
+		for i in adjacentRooms.size():
+			if adjacentRooms[i].populated != false:
+				adjacentRooms.remove(i)
+				adjacentDirections.remove(i)
+		if adjacentRooms != []:
+			for u in adjacentRooms.size():
+				var chanceToSpawnRoom = randi() % 100 + 1
+				if chanceToSpawnRoom <=10:
+					createRoom(adjacentRooms, adjacentDirections)
+					return
+		extend.remove(0)
+		adjacentRooms.clear()
+		adjacentDirections.clear()
+		if extend == []:
+			extend = rooms.duplicate(true)
+
+# create rooms based on the free templates nearby
+func createRoom(adjacentRooms, adjacentDirections):
+	if adjacentRooms != []:
+		var roomToBeMade = randi() % adjacentRooms.size()
+		var roomPos = adjacentRooms[roomToBeMade].get_global_position()
+		# Opens a path towards the room we're connecting to
+		extend[0].openCorridorInExtend(adjacentDirections[roomToBeMade])
+		adjacentRooms[roomToBeMade].queue_free()
+		adjacentRooms.remove(roomToBeMade)
+		var ROOM_SCENE
+		if endingRoom != null:
+			# If adding the end Room ensure it gets loaded instead
+			ROOM_SCENE = load("res://World/Dungeons/"+dungeonName+"/Rooms/EndingRoom.tscn")
+		else:
+		# Get a random room from possible rooms pool
+			var roomNumber = listOfRooms[randi() % listOfRooms.size()]
+			ROOM_SCENE = load("res://World/Dungeons/"+dungeonName+"/Rooms/"+roomNumber+".tscn")
+		var roomScene = ROOM_SCENE.instance()
+		roomScene.set_global_position(roomPos)
+		roomScene.populated = true
+		# Opens a path towards the room we're being connecting to
+		roomScene.openCorridor(adjacentDirections[roomToBeMade])
+		if endingRoom != null:
+			endingRoom = roomScene
+		# Add room to array lists and add to scene
+		adjacentDirections.remove(roomToBeMade)
+		$Rooms.add_child(roomScene)
+		extend.append(roomScene)
+		rooms.append(roomScene)
+		floorRoomCount -=1
+		yield(get_tree().create_timer(0.1), 'timeout')
+
+#check if room contains any populate rooms adjcent to it
+func adjacentRoomDirection(adjcentCheck, adjacentRooms, adjacentDirections):
+	# Appens to arraylists the adjacent rooms and their directions
+	var directions = 4 # top, right, bottom and left
+	for i in directions:
+		var adjcentObj = getAdjacentRooms(adjcentCheck[i])
+		if adjcentObj != null:
+			if i == 0:
+				adjacentRooms.append(adjcentObj)
+				adjacentDirections.append("Top")
+			elif i == 1:
+				adjacentRooms.append(adjcentObj)
+				adjacentDirections.append("Right")
+			elif i == 2:
+				adjacentRooms.append(adjcentObj)
+				adjacentDirections.append("Bottom")
+			elif i == 3:
+				adjacentRooms.append(adjcentObj)
+				adjacentDirections.append("Left")
+
+#get a list of all populated rooms near the current one
+func getAdjacentRooms(collisionShape):
+	var pos = collisionShape.get_global_position()
+	for collision in get_world_2d().direct_space_state.intersect_point(pos):
+		return collision["collider"]
+
+#delete all the templates that didn't get populated
+func deleteEmptyChunks(): #Delets unused room chunks
+	$TemplateRooms.queue_free()
+
+#delete collion shapes part of the room templates
+func deleteCollisionShapes(): # Delets shapes that check for adjcent rooms
+	var roomChildren:Array = $Rooms.get_children()
+	for i in roomChildren.size():
+		roomChildren[i].removeCollisions()
+
+
+# fuse all dungeon rooms into one uniform tilemap
+func updateDungeonTileMap():
+	var mainTileMap:Array = $TileMaps.get_children()
+	var tileMapID:Array = [0]
+	var roomCheck:Array = $Rooms.get_children()
+	for i in tileMapID.size():
+		for o in roomCheck.size():
+			var roomTileMap:Array = roomCheck[o].getTileMap()
+			for y in roomTileMap.size():
+				var cellSize = roomTileMap[y].cell_size[0]
+				var cells:Array = roomCheck[o].getTileMapCells(y,i)
+				for u in cells.size():
+					var globalCord:Vector2 = roomTileMap[y].to_global(cells[u]*cellSize)
+					var localCord:Vector2 = mainTileMap[y].world_to_map(globalCord)
+					mainTileMap[y].set_cell(localCord[0], localCord[1], i)
+					if y == 0: #remove premade walls where we are placing floors to avoid a giant wall block
+						var wallLocalCord:Vector2 = mainTileMap[y+1].world_to_map(globalCord)
+						mainTileMap[y+1].set_cell(wallLocalCord[0], wallLocalCord[1], -1)
+	for i in roomCheck.size():
+		roomCheck[i].removeTileMap()
+	var worldLayer = 0b00000001
+	for i in mainTileMap.size():
+		mainTileMap[i].set_collision_layer_bit(worldLayer, true)
+		mainTileMap[i].set_collision_mask_bit(worldLayer, true)
+		mainTileMap[i].update_bitmask_region()
